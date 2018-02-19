@@ -5,41 +5,6 @@ defmodule Identicon do
 
   @doc """
     This is the main function for converting strings to identicons
-
-    # Examples
-      iex> Identicon.main("Banana")
-      %Identicon.Image{
-        color: {230, 249, 195},
-        grid: [
-          {230, 0},
-          {230, 4},
-          {170, 10},
-          {162, 12},
-          {170, 14},
-          {122, 16},
-          {122, 18},
-          {24, 20},
-          {244, 21},
-          {74, 22},
-          {244, 23},
-          {24, 24}
-        ],
-        hex: [230, 249, 195, 71, 103, 45, 170, 229, 162, 85, 122, 225, 24, 244, 74, 30],
-        pixel_map: [
-          {{0, 0}, {50, 50}},
-          {{200, 0}, {250, 50}},
-          {{0, 100}, {50, 150}},
-          {{100, 100}, {150, 150}},
-          {{200, 100}, {250, 150}},
-          {{50, 150}, {100, 200}},
-          {{150, 150}, {200, 200}},
-          {{0, 200}, {50, 250}},
-          {{50, 200}, {100, 250}},
-          {{100, 200}, {150, 250}},
-          {{150, 200}, {200, 250}},
-          {{200, 200}, {250, 250}}
-        ]
-      }
   """
   def main(input) do
     input
@@ -48,6 +13,8 @@ defmodule Identicon do
     |> build_grid
     |> filter_odd_squares_from_grid
     |> build_pixel_map
+    |> draw_image
+    |> save_image(input)
   end
 
   def hash_input(input) do
@@ -93,5 +60,20 @@ defmodule Identicon do
     end
 
     %Identicon.Image{image | pixel_map: pixel_map}
+  end
+
+  def draw_image(%Identicon.Image{color: color, pixel_map: pixel_map}) do
+    image = :egd.create(250, 250)
+    fill = :egd.color(color)
+
+    Enum.each pixel_map, fn({start, stop}) ->
+      :egd.filledRectangle(image, start, stop, fill)
+    end
+
+    :egd.render(image)
+  end
+
+  def save_image(image, input) do
+    File.write("#{input}.png", image)
   end
 end
